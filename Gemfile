@@ -8,6 +8,7 @@ gem "rails", "~> 3.2.6"
 #once we get to 3.1 all that should be necessary is adding some includes
 #to the application.js file in assets
 gem 'jquery-rails'
+gem 'jquery-ui-rails'
 
 gem 'rake'
 
@@ -20,7 +21,7 @@ gem 'make_resourceful'
 
 #file attachment - to replace attachment_fu
 #TODO Can remove version requirement after 1.9 migration
-gem 'paperclip'
+gem 'paperclip', "3.5.1"
 
 gem "htmlentities"
 
@@ -28,7 +29,7 @@ gem "htmlentities"
 gem "namecase"
 
 #RubyZip - used to create Zip file to send via SWORD
-gem "rubyzip"
+gem "rubyzip", "< 1.0.0"
 
 #Sword2Ruby - used for SWORD interaction
 gem "sword2ruby", ">=0.0.6", :git => 'git://github.com/BibApp/sword2ruby.git'
@@ -57,7 +58,6 @@ gem 'lisbn'
 #delayed jobs
 gem 'delayed_job'
 gem 'delayed_job_active_record', "~> 0.3.2"
-
 gem 'daemons', '1.1.9'
 
 #data structures
@@ -72,7 +72,8 @@ gem 'rails-i18n'
 #production, for example. Note that the appropriate database for your
 #set up does need to be specified here, though, or things will fail
 #pretty quickly.
-gem 'pg'
+gem 'mysql2', '0.3.15'
+
 
 #dump database in YAML form - honestly, I'm not sure why we need this, but
 #while I am porting to Rails 3 I'm not going to worry about it.
@@ -103,7 +104,9 @@ gem 'sort_alphabetical'
 gem 'loofah-activerecord'
 
 #For deployment, but can be ignored if not using capistrano
-gem 'capistrano'
+#gem 'capistrano'
+#For production
+gem 'passenger'
 
 #include thin webserver for development
 #to start it, do 'bundle exec thin start' - this is important, as
@@ -137,7 +140,6 @@ group :test, :development do
   gem 'factory_girl'
   gem 'simplecov'
   gem 'cucumber-rails'
-  gem 'database_cleaner'
   gem 'test-unit'
 
   #I'd prefer to add metric_fu directly here, but something it pulls
