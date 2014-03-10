@@ -1,7 +1,4 @@
-
-<!-- saved from url=(0098)https://raw.github.com/jstirnaman/BibApp/63a57d664a0d130fa78b939a9f025c2a3be70d17/config/routes.rb -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css"></style></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">Bibapp::Application.routes.draw do
-
+Bibapp::Application.routes.draw do
 
   def make_routes
     resources :works do
@@ -101,8 +98,10 @@
       member do
         put :verify
         put :deny
+        put :unverify
       end
     end
+    
     #####
     # Publisher routes
     #####
@@ -142,7 +141,7 @@
       end
       resource :password
       collection do
-        match 'activate(/:activation_code)', :to =&gt; 'users#activate', :as =&gt; 'activate'
+        match 'activate(/:activation_code)', :to => 'users#activate', :as => 'activate'
       end
       member do
         get :update_email
@@ -161,26 +160,25 @@
     ####
     # Search route
     ####
-    match 'search', :to =&gt; 'search#index', :as =&gt; 'search'
-    match 'search/advanced', :to =&gt; 'search#advanced', :as =&gt; 'advanced_search'
+    match 'search', :to => 'search#index', :as => 'search'
+    match 'search/advanced', :to => 'search#advanced', :as => 'advanced_search'
 
     ####
     # Saved routes
     ####
-    match 'saved', :to =&gt; 'user_sessions#saved', :as =&gt; 'saved'
-    match 'sessions/delete_saved', :to =&gt; 'user_sessions#delete_saved',
-          :as =&gt; 'delete_saved'
-    match 'sessions/add_many_to_saved', :to =&gt; 'user_sessions#add_many_to_saved',
-          :as =&gt; 'add_many_to_saved'
+    match 'saved', :to => 'user_sessions#saved', :as => 'saved'
+    match 'sessions/delete_saved', :to => 'user_sessions#delete_saved',
+          :as => 'delete_saved'
+    match 'sessions/add_many_to_saved', :to => 'user_sessions#add_many_to_saved',
+          :as => 'add_many_to_saved'
     ####
     # Authentication routes
     ####
     # Make easier routes for authentication (via restful_authentication)
-    match 'signup', :to =&gt; 'users#new', :as =&gt; 'signup'
-    match 'login', :to =&gt; 'user_sessions#new', :as =&gt; 'login'
-    match 'logout', :to =&gt; 'user_sessions#destroy', :as =&gt; 'logout'
-    match 'activate/:activation_code', :to =&gt; 'users#activate', :as =&gt; 'activate'
-
+    match 'signup', :to => 'users#new', :as => 'signup'
+    match 'login', :to => 'user_sessions#new', :as => 'login'
+    match 'logout', :to => 'user_sessions#destroy', :as => 'logout'
+    match 'activate/:activation_code', :to => 'users#activate', :as => 'activate'
     ####
     # DEFAULT ROUTES
     ####
@@ -207,41 +205,32 @@
         get :add_upload_box
       end
     end
-
     # Default homepage to works index action
-    root :to =&gt; 'works#index'
-
-    match 'citations', :to =&gt; 'works#index'
+    root :to => 'works#index'
+	
+    match 'citations', :to => 'works#index'
 
     resource :user_session
-
+    
     resources :authentications
-    match 'auth/:provider/callback' =&gt; 'authentications#create'
-    match 'auth/failure' =&gt; 'user_sessions#new'
-    match 'admin/index' =&gt; "admin#index"
-    match 'admin/duplicates' =&gt; "admin#duplicates"
-    match 'admin/ready_to_archive' =&gt; "admin#ready_to_archive"
-    match 'admin/update_sherpa_data' =&gt; "admin#update_sherpa_data"
-    match 'admin/deposit_via_sword' =&gt; "admin#deposit_via_sword"
-    match 'admin/update_publishers_from_sherpa' =&gt; "admin#update_publishers_from_sherpa"
+    match 'auth/:provider/callback' => 'authentications#create'
+    match 'admin/index' => "admin#index"
+    match 'admin/duplicates' => "admin#duplicates"
+    match 'admin/ready_to_archive' => "admin#ready_to_archive"
+    match 'admin/update_sherpa_data' => "admin#update_sherpa_data"
+    match 'admin/deposit_via_sword' => "admin#deposit_via_sword"
+    match 'admin/update_publishers_from_sherpa' => "admin#update_publishers_from_sherpa"
 
-    match 'roles/index' =&gt; "roles#index"
-    match 'roles/destroy' =&gt; "roles#destroy"
-    match 'roles/create' =&gt; "roles#create"
-    match 'roles/new_admin' =&gt; "roles#new_admin"
-    match 'roles/new_editor' =&gt; "roles#new_editor"
-  
-    #####
-  # Static Pages routes KUMC
-  #####
-  # Add Routes for FAQ, About, etc.
-    match 'pages/about'
-    match 'pages/faq'
+    match 'roles/index' => "roles#index"
+    match 'roles/destroy' => "roles#destroy"
+    match 'roles/create' => "roles#create"
+    match 'roles/new_admin' => "roles#new_admin"
+    match 'roles/new_editor' => "roles#new_editor"
   end
 
   if I18n.available_locales.many?
     locale_regexp = Regexp.new(I18n.available_locales.join('|'))
-    scope "(:locale)", :locale =&gt; locale_regexp do
+    scope "(:locale)", :locale => locale_regexp do
       make_routes
     end
     #uncomment to make multi-locale version able to direct locale-less routes as well
@@ -251,5 +240,4 @@
   end
 
 
-end
-</pre></body></html>
+end  
