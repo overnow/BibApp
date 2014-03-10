@@ -1,22 +1,26 @@
+
+<!-- saved from url=(0117)https://raw.github.com/jstirnaman/BibApp/63a57d664a0d130fa78b939a9f025c2a3be70d17/app/controllers/works_controller.rb -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css"></style></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">require 'cmess/guess_encoding'
 require 'will_paginate/array'
 require 'set'
-class WorksController < ApplicationController
+class WorksController &lt; ApplicationController
+  #require CMess to help guess encoding of uploaded text files
 
   #Require a user be logged in to create / update / destroy
   before_filter :login_required,
-                :only => [:new, :create, :edit, :update, :destroy, :destroy_multiple,
-                          :orphans]
+                :only =&gt; [:new, :create, :edit, :update, :destroy, :destroy_multiple,
+                          :orphans, :merge_multiple_duplicates]
 
-  before_filter :find_authorities, :only => [:new, :edit]
+  before_filter :find_authorities, :only =&gt; [:new, :edit]
 
   make_resourceful do
     build :show, :new, :edit, :destroy
 
-    publish :xml, :json, :yaml, :only => :show, :attributes => [
+    publish :xml, :json, :yaml, :only =&gt; :show, :attributes =&gt; [
         :id, :type, :title_primary, :title_secondary, :title_tertiary,
         :year, :volume, :issue, :start_page, :end_page, :links, :tags,
-        {:publication => [:id, :name]}, {:publisher => [:id, :name]},
-        {:name_strings => [:id, :name]}, {:people => [:id, :first_last]}]
+        {:publication =&gt; [:id, :name]}, {:publisher =&gt; [:id, :name]},
+        {:name_strings =&gt; [:id, :name]}, {:people =&gt; [:id, :first_last]}]
 
     #Add a response for METS!
     response_for :show do |format|
@@ -41,7 +45,7 @@ class WorksController < ApplicationController
 
       if @person
         #If adding to a person, must be an 'editor' of that person
-        permit "editor on person", :person => @person
+        permit "editor on person"
       else
         #Default: anyone with 'editor' role (anywhere) can add works
         permit "editor"
@@ -96,7 +100,7 @@ class WorksController < ApplicationController
 
       #Solr filter query for active people
       params[:fq] ||= []
-      params[:fq] << "person_active:true" if Person.where(:active => true).count > 0
+      params[:fq] &lt;&lt; "person_active:true" if Person.where(:active =&gt; true).count &gt; 0
       search(params)
     end
   end
@@ -104,7 +108,7 @@ class WorksController < ApplicationController
   def orphans
     permit "editor for Work"
     @title = t('common.works.orphans')
-    @orphans = Work.orphans.paginate(:page => params[:page] || 1, :per_page => params[:per_page] || 20)
+    @orphans = Work.orphans.paginate(:page =&gt; params[:page] || 1, :per_page =&gt; params[:per_page] || 20)
   end
 
   def orphans_delete
@@ -114,7 +118,7 @@ class WorksController < ApplicationController
         w.destroy
       end
     end
-    redirect_to orphans_works_url(:page => params[:page], :per_page => params[:per_page])
+    redirect_to orphans_works_url(:page =&gt; params[:page], :per_page =&gt; params[:per_page])
   end
 
   def change_type
@@ -122,7 +126,7 @@ class WorksController < ApplicationController
     work = Work.find(params[:id])
 
     # lazy mapping of all creator/contributor roles to top creator role
-    authors = work.work_name_strings.collect { |wns| [:name => wns.name_string.name, :role => t.constantize.creator_role] }
+    authors = work.work_name_strings.collect { |wns| [:name =&gt; wns.name_string.name, :role =&gt; t.constantize.creator_role] }
 
     work.update_type_and_save(t) if t
     work.set_work_name_strings authors
@@ -138,7 +142,7 @@ class WorksController < ApplicationController
   # For paging make_resourceful publish
   def current_objects
     page = params[:page] || 1
-    @current_object ||= current_model.order("created_at DESC").paginate(:page => page, :per_page => 10)
+    @current_object ||= current_model.order("created_at DESC").paginate(:page =&gt; page, :per_page =&gt; 10)
   end
 
   #Create a new Work or many new Works
@@ -148,7 +152,7 @@ class WorksController < ApplicationController
 
     if @person
       #If adding to a person, must be an 'editor' of that person
-      permit "editor on person", :person => @person
+      permit "editor on person"
     else
       #Default: anyone with 'editor' role (anywhere) can add works
       permit "editor"
@@ -182,12 +186,12 @@ class WorksController < ApplicationController
         respond_to do |format|
           flash[:notice] = t('common.works.flash_create')
           format.html { redirect_to work_url(@work) }
-          format.xml { head :created, :location => work_url(@work) }
+          format.xml { head :created, :location =&gt; work_url(@work) }
         end
       else
         respond_to do |format|
           format.html { render 'new' }
-          format.xml { render :xml => @work.errors.to_xml }
+          format.xml { render :xml =&gt; @work.errors.to_xml }
         end
       end
       @work.update_solr
@@ -216,7 +220,7 @@ class WorksController < ApplicationController
 
     else #Only perform update if 'save' button was pressed
          #Anyone with 'editor' role on this work can edit it
-      permit "editor on work", :work => @work
+      permit "editor on work"
 
       #First, update work attributes (ensures deduplication keys are updated)
       @work.attributes = params[:work]
@@ -241,7 +245,7 @@ class WorksController < ApplicationController
         respond_to do |format|
           @return_path = params[:return_path]
           format.html { render 'edit' }
-          format.xml { render :xml => @work.errors.to_xml }
+          format.xml { render :xml =&gt; @work.errors.to_xml }
         end
       end
     end
@@ -305,7 +309,7 @@ class WorksController < ApplicationController
         work = Work.find_by_id(work_id)
 
         #One final check...only an admin on this work can destroy it
-        if logged_in? && current_user.has_role?("admin", work)
+        if logged_in? &amp;&amp; current_user.has_role?("admin", work)
           work.destroy
         else
           full_success = false
@@ -325,6 +329,42 @@ class WorksController < ApplicationController
     end
   end
 
+  def merge_multiple
+    #Anyone who is minimally an admin (on anything in system) can merge duplicate works
+    #(NOTE: User will actually have to be an 'admin' on all works in this batch,
+    #       otherwise he/she will not be able to merge and destroy *all* the works)
+    permit "admin"
+
+    work_ids = params[:work_id]
+    return_path = params[:return_path]
+
+    full_success = true
+
+    if work_ids.present?
+      #Destroy each work one by one, so we can be sure user has 'admin' rights on all
+      work_ids.each do |work_id|
+        work = Work.find_by_id(work_id)
+
+        #One final check...only an admin on this work can destroy it
+        if logged_in? &amp;&amp; current_user.has_role?("admin", work)
+          work.merge_duplicates
+        else
+          full_success = false
+        end
+      end
+    end
+
+    respond_to do |format|
+      if full_success
+        flash[:notice] = t('common.works.flash_merge_multiple_successful')
+      else
+        flash[:warning] = t('common.works.flash_merge_multiple_privileges')
+      end
+      #forward back to path which was specified in params
+      format.html { redirect_to return_path }
+      format.xml { head :ok }
+    end
+  end
 
   # Load name strings list from Request params
   # and set for the current work.
@@ -348,7 +388,7 @@ class WorksController < ApplicationController
     params[parameter_key] ||= []
     params[parameter_key].each do |name|
       name_string = NameString.find_or_initialize_by_name(name)
-      accumulator << {:name => name_string, :role => role}
+      accumulator &lt;&lt; {:name =&gt; name_string, :role =&gt; role}
     end
     work.set_work_name_strings(accumulator)
   end
@@ -364,7 +404,7 @@ class WorksController < ApplicationController
     first_set = work_sets.pop
     ids = work_sets.inject(first_set) {|intersection, set| intersection.intersection(set) }.to_a
     proper_prepare_pagination
-    @works = Work.where(:id => ids).paginate(:page => @page, :per_page => @rows).order(proper_work_order_phrase(@sort, @order))
+    @works = Work.where(:id =&gt; ids).paginate(:page =&gt; @page, :per_page =&gt; @rows).order(proper_work_order_phrase(@sort, @order))
   end
 
   private
@@ -411,7 +451,7 @@ class WorksController < ApplicationController
     params[:author_roles] ||= []
     params[:contributor_roles] ||= []
 
-    #Set Author & Editor NameStrings for this Work
+    #Set Author &amp; Editor NameStrings for this Work
     @work_name_strings = Array.new
     @author_name_strings = Array.new
     @editor_name_strings = Array.new
@@ -467,14 +507,14 @@ class WorksController < ApplicationController
 
   #name_array and role_array are parallel arrays
   #whenever the stripped name is not blank add a hash to each accumulator
-  #of the form :name => name, :role => role
+  #of the form :name =&gt; name, :role =&gt; role
   def accumulate_names_and_roles(name_array, role_array, accumulators)
     name_array.zip(role_array).each do |row|
       name, role = row
       name.strip!
       unless name.blank?
         accumulators.each do |acc|
-          acc << {:name => name, :role => role}
+          acc &lt;&lt; {:name =&gt; name, :role =&gt; role}
         end
       end
     end
@@ -491,3 +531,4 @@ class WorksController < ApplicationController
   end
 
 end
+</pre></body></html>
