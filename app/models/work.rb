@@ -1,13 +1,9 @@
-
-<!-- saved from url=(0100)https://raw.github.com/jstirnaman/BibApp/63a57d664a0d130fa78b939a9f025c2a3be70d17/app/models/work.rb -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css"></style></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">require 'machine_name'
+require 'machine_name'
 require 'stop_word_name_sorter'
-require 'merge'
 
-class Work &lt; ActiveRecord::Base
+class Work < ActiveRecord::Base
   include MachineName
   include StopWordNameSorter
-  include Merge
 
   acts_as_authorizable #some actions on Works require authorization
 
@@ -26,30 +22,30 @@ class Work &lt; ActiveRecord::Base
   belongs_to :publication
   belongs_to :publisher
 
-  has_many :name_strings, :through =&gt; :work_name_strings, :order =&gt; "position"
+  has_many :name_strings, :through => :work_name_strings, :order => "position"
 
-  has_many :work_name_strings, :order =&gt; "position", :dependent =&gt; :destroy
+  has_many :work_name_strings, :order => "position", :dependent => :destroy
 
-  has_many :people, :through =&gt; :contributorships,
-           :conditions =&gt; ["contributorship_state_id = ?", Contributorship::STATE_VERIFIED]
+  has_many :people, :through => :contributorships,
+           :conditions => ["contributorship_state_id = ?", Contributorship::STATE_VERIFIED]
 
-  has_many :contributorships, :dependent =&gt; :destroy
+  has_many :contributorships, :dependent => :destroy
 
-  has_many :keywords, :through =&gt; :keywordings
-  has_many :keywordings, :dependent =&gt; :destroy
+  has_many :keywords, :through => :keywordings
+  has_many :keywordings, :dependent => :destroy
 
-  has_many :taggings, :as =&gt; :taggable, :dependent =&gt; :destroy
-  has_many :tags, :through =&gt; :taggings
-  has_many :users, :through =&gt; :taggings
+  has_many :taggings, :as => :taggable, :dependent => :destroy
+  has_many :tags, :through => :taggings
+  has_many :users, :through => :taggings
 
   has_many :external_system_uris
 
-  has_many :attachments, :as =&gt; :asset
+  has_many :attachments, :as => :asset
   belongs_to :work_archive_state
 
   validates_presence_of :title_primary
-  validates_numericality_of :publication_date_year, :allow_nil =&gt; true, :greater_than =&gt; 0
-  validates_inclusion_of :publication_date_month, :in =&gt; 1..12, :allow_nil =&gt; true
+  validates_numericality_of :publication_date_year, :allow_nil => true, :greater_than => 0
+  validates_inclusion_of :publication_date_month, :in => 1..12, :allow_nil => true
   validates_each :publication_date_month do |record, attr, value|
     if value.present?
       unless record.publication_date_year
@@ -57,7 +53,7 @@ class Work &lt; ActiveRecord::Base
       end
     end
   end
-  validates_inclusion_of :publication_date_day, :in =&gt; 1..31, :allow_nil =&gt; true
+  validates_inclusion_of :publication_date_day, :in => 1..31, :allow_nil => true
   validates_each :publication_date_day do |record, attr, value|
     if value.present?
       if  record.publication_date_year and record.publication_date_month
@@ -76,21 +72,21 @@ class Work &lt; ActiveRecord::Base
   STATE_IN_PROCESS = 1
   STATE_DUPLICATE = 2
   STATE_ACCEPTED = 3
-  scope :in_process, where(:work_state_id =&gt; STATE_IN_PROCESS)
-  scope :duplicate, where(:work_state_id =&gt; STATE_DUPLICATE)
-  scope :accepted, where(:work_state_id =&gt; STATE_ACCEPTED)
+  scope :in_process, where(:work_state_id => STATE_IN_PROCESS)
+  scope :duplicate, where(:work_state_id => STATE_DUPLICATE)
+  scope :accepted, where(:work_state_id => STATE_ACCEPTED)
 
   ARCHIVE_STATE_INITIAL = 1
   ARCHIVE_STATE_READY_TO_ARCHIVE = 2
   ARCHIVE_STATE_ARCHIVED = 3
   #Various Work Archival Statuses
-  scope :ready_to_archive, where(:work_archive_state_id =&gt; ARCHIVE_STATE_READY_TO_ARCHIVE)
-  scope :archived, where(:work_archive_state_id =&gt; ARCHIVE_STATE_ARCHIVED)
+  scope :ready_to_archive, where(:work_archive_state_id => ARCHIVE_STATE_READY_TO_ARCHIVE)
+  scope :archived, where(:work_archive_state_id => ARCHIVE_STATE_ARCHIVED)
 
   TO_BE_BATCH_INDEXED = 1
   NOT_TO_BE_BATCH_INDEXED = 0
 
-  scope :to_batch_index, where(:batch_index =&gt; TO_BE_BATCH_INDEXED)
+  scope :to_batch_index, where(:batch_index => TO_BE_BATCH_INDEXED)
 
   #Various Work Contribution Statuses
   scope :unverified, where('contributorships.contributorship_state_id = ?', Contributorship::STATE_UNVERIFIED)
@@ -99,18 +95,18 @@ class Work &lt; ActiveRecord::Base
   scope :visible, where('contributorships.hide = ?', false)
 
   scope :for_authority_publication,
-        lambda { |authority_publication_id| where(:authority_publication_id =&gt; authority_publication_id) }
+        lambda { |authority_publication_id| where(:authority_publication_id => authority_publication_id) }
 
   scope :most_recent_first, order('updated_at DESC')
   scope :by_publication_date, order('publication_date_year DESC, publication_date_month DESC, publication_date_day DESC')
 
   def self.orphans
-    (self.orphans_no_contributorships + self.orphans_denied_contributorships).uniq.sort { |a, b| a.title_primary &lt;=&gt; b.title_primary }
+    (self.orphans_no_contributorships + self.orphans_denied_contributorships).uniq.sort { |a, b| a.title_primary <=> b.title_primary }
   end
 
   def self.orphans_no_contributorships
     self.order('title_primary').joins('LEFT JOIN contributorships ON works.id = contributorships.work_id').
-        where(:contributorships =&gt; {:id =&gt; nil})
+        where(:contributorships => {:id => nil})
   end
 
   #The implementation may be improvable, but this only does 3 SQL calls. It could be done in one, but I'm not
@@ -119,14 +115,14 @@ class Work &lt; ActiveRecord::Base
   #all their contributorships and find the ones with all denied contributorships in code
   def self.orphans_denied_contributorships
     contributorships = Contributorship.denied.select("DISTINCT work_id")
-    works = self.includes(:contributorships).where(:id =&gt; contributorships.collect { |c| c.work_id })
+    works = self.includes(:contributorships).where(:id => contributorships.collect { |c| c.work_id })
     works.select do |work|
       !work.contributorships.detect { |c| !c.denied? }
     end
   end
 
   #### Callbacks ####
-  before_validation :set_initial_states, :on =&gt; :create
+  before_validation :set_initial_states, :on => :create
   after_create :after_create_actions
   before_save :before_save_actions
   after_save :after_save_actions
@@ -324,7 +320,7 @@ class Work &lt; ActiveRecord::Base
   # Caller must check to see if there were any validation errors.
   def update_from_hash(h)
     work_name_strings = (h[:work_name_strings] || []).collect do |wns|
-      {:name =&gt; wns[:name], :role =&gt; self.denormalize_role(wns[:role])}
+      {:name => wns[:name], :role => self.denormalize_role(wns[:role])}
     end
     self.set_work_name_strings(work_name_strings)
 
@@ -342,9 +338,9 @@ class Work &lt; ActiveRecord::Base
       publication_name = "Unknown (#{issn_isbn})"
     end
 
-    self.set_publication_info(:name =&gt; publication_name,
-                              :issn_isbn =&gt; issn_isbn,
-                              :publisher_name =&gt; h[:publisher])
+    self.set_publication_info(:name => publication_name,
+                              :issn_isbn => issn_isbn,
+                              :publisher_name => h[:publisher])
 
     ###
     # Setting Keywords
@@ -381,11 +377,11 @@ class Work &lt; ActiveRecord::Base
     #Eventually (by Rails 3.2) we can just use update_column. For 3.0 we need to do something like this.
     #Note that we also set the value in self as later callbacks may want the value set here.
     if dupe_candidates.empty?
-      self.class.where(:id =&gt; self.id).update_all(:work_state_id =&gt; STATE_ACCEPTED)
+      self.class.where(:id => self.id).update_all(:work_state_id => STATE_ACCEPTED)
       self.is_accepted
       #Only mark as duplicate if this work wasn't previously accepted
     elsif !self.accepted?
-      self.class.where(:id =&gt; self.id).update_all(:work_state_id =&gt; STATE_DUPLICATE)
+      self.class.where(:id => self.id).update_all(:work_state_id => STATE_DUPLICATE)
       self.is_duplicate
     end
 
@@ -393,59 +389,6 @@ class Work &lt; ActiveRecord::Base
     # version of a work? We've tried this in the past, but we need to do
     # it in a better way (e.g.  we don't end up accidentally re-marking things as
     # dupes that have previously been determined to not be dupes by a human)
-  end
-  
-  def richness
-  # An simplistic attempt to determine the canonical best
-  # version of a work. Calculates richness
-  # of the record for comparing it to duplicates.
-    richness = self.abstract ? 10 : 0
-    richness += self.volume ? 10 : 0
-    richness += self.issue ? 10 : 0
-    richness += self.year ? 10 : 0
-    richness += self.links ? 10 : 0
-    richness += self.publication_id ? 10 : 0
-  end
-  
-  def sort_dupes_by_richness(dupes)
-    # Returns duplicates for a work, including the work itself,
-    # as an array of work objects sorted by descending richness   
-       
-      unless dupes.size &lt;= 1
-        # Sort by descending richness
-        dupesorted = dupes.sort {|a,b| b.richness &lt;=&gt; a.richness}        
-        if dupesorted.first.richness == dupesorted.last.richness
-          # Re-sort by ID to let the oldest be the master
-          dupesorted = dupesorted.sort {|a,b| a[:id] &lt;=&gt; b[:id]}
-        end
-        
-        return dupesorted            
-      end
-  end
-  
-  def merge_duplicates
-    dupes = Index.possible_accepted_duplicate_works(self)
-    if (dupes.size &lt;= 1) or dupes.nil?
-      dupes = Index.possible_unaccepted_duplicate_works(self)
-    end
-    
-    if dupes.size &gt; 1    
-      dupesorted = self.sort_dupes_by_richness(dupes)  
-      master = dupesorted.slice!(0)
-      
-      # TODO: This is the only way I can get the objects correctly
-      # passed to merge!
-      # merge! is supposed to take a list of objects as an argument.
-      # I assume that would be more efficient than repeatedly
-      # calling merge!, but apparently I'm not building
-      # the list correctly. Surely there is a better way.
-      
-      dupesorted.each do |d|
-        master.merge!(d)
-      end
-      
-      master.is_accepted
-    end  
   end
 
   def set_for_index_and_save
@@ -463,8 +406,8 @@ class Work &lt; ActiveRecord::Base
   # Arguments:
   #  * array of keyword strings
   def set_keyword_strings(keyword_strings)
-    keyword_strings ||= []
-    keywords = keyword_strings.to_a.uniq.collect do |add|
+    keyword_strings = Array.wrap(keyword_strings)
+    keywords = keyword_strings.uniq.collect do |add|
       Keyword.find_or_initialize_by_name(add)
     end
     self.set_keywords(keywords)
@@ -522,7 +465,7 @@ class Work &lt; ActiveRecord::Base
   # (from a hash of "name" and "role" values)
   # and saves them to the current Work
   # Arguments:
-  #  * hash {:name =&gt; "Donohue, T.", :role =&gt; "Author | Editor" }
+  #  * hash {:name => "Donohue, T.", :role => "Author | Editor" }
   def set_work_name_strings(work_name_string_hash)
     if self.new_record?
       @work_name_strings_cache = work_name_string_hash
@@ -533,7 +476,7 @@ class Work &lt; ActiveRecord::Base
 
   def set_publisher_from_name(publisher_name = nil)
     publisher_name = "Unknown" if publisher_name.blank?
-    set_publisher = Publisher.find_or_create_by_name(:name =&gt; publisher_name, :romeo_color =&gt; 'unknown')
+    set_publisher = Publisher.find_or_create_by_name(:name => publisher_name, :romeo_color => 'unknown')
     self.set_initial_publisher(set_publisher)
     return set_publisher
   end
@@ -541,23 +484,23 @@ class Work &lt; ActiveRecord::Base
   def set_publication_from_name(name, issn_isbn, set_publisher)
     return unless name
     if issn_isbn.present?
-      publication = Publication.find_or_create_by_name_and_issn_isbn_and_initial_publisher_id(:name =&gt; name,
-                                                                                              :issn_isbn =&gt; issn_isbn.to_s, :initial_publisher_id =&gt; set_publisher.id)
+      publication = Publication.find_or_create_by_name_and_issn_isbn_and_initial_publisher_id(:name => name,
+                                                                                              :issn_isbn => issn_isbn.to_s, :initial_publisher_id => set_publisher.id)
     elsif set_publisher
       if set_publisher.name == 'Unknown'
         #try to look up a publisher from the publication name - if that doesn't work go ahead
         #and use the set_publisher
-        publication = Publication.find_or_create_by_name(:name =&gt; name)
+        publication = Publication.find_or_create_by_name(:name => name)
         if publisher = publication.publisher
           self.set_initial_publisher(publisher)
         else
           publication.publisher = set_publisher
         end
       else
-        publication = Publication.find_or_create_by_name_and_initial_publisher_id(:name =&gt; name, :initial_publisher_id =&gt; set_publisher.id)
+        publication = Publication.find_or_create_by_name_and_initial_publisher_id(:name => name, :initial_publisher_id => set_publisher.id)
       end
     else
-      publication = Publication.find_or_create_by_name(:name =&gt; name)
+      publication = Publication.find_or_create_by_name(:name => name)
     end
     publication.save!
     set_initial_publication(publication)
@@ -567,9 +510,9 @@ class Work &lt; ActiveRecord::Base
   # Initializes the Publication information
   # and saves it to the current Work
   # Arguments:
-  #  * hash {:name =&gt; "Publication name",
-  #          :issn_isbn =&gt; "Publication ISSN or ISBN",
-  #          :publisher_name =&gt; "Publisher name" }
+  #  * hash {:name => "Publication name",
+  #          :issn_isbn => "Publication ISSN or ISBN",
+  #          :publisher_name => "Publisher name" }
   #  (not all hash values need be set)
   def set_publication_info(publication_hash)
     logger.debug("\n\n===SET PUBLICATION INFO===\n\n")
@@ -621,7 +564,7 @@ class Work &lt; ActiveRecord::Base
         # Find or create a Contributorship for each claim
         claims.each do |claim|
           Contributorship.find_or_create_by_work_id_and_person_id_and_pen_name_id_and_role(
-              :work_id =&gt; self.id, :person_id =&gt; claim.person.id, :pen_name_id =&gt; claim.id, :role =&gt; cns.role)
+              :work_id => self.id, :person_id => claim.person.id, :pen_name_id => claim.id, :role => cns.role)
         end
       end
     end
@@ -629,10 +572,10 @@ class Work &lt; ActiveRecord::Base
 
   # Return a hash comprising all the Contributorship scoring methods
   def update_scoring_hash
-    self.scoring_hash = {:year =&gt; self.publication_date_year,
-                         :publication_id =&gt; self.publication_id,
-                         :collaborator_ids =&gt; self.name_strings.collect { |ns| ns.id }, #there's an error if one tries to do this the natural way
-                         :keyword_ids =&gt; self.keyword_ids}
+    self.scoring_hash = {:year => self.publication_date_year,
+                         :publication_id => self.publication_id,
+                         :collaborator_ids => self.name_strings.collect { |ns| ns.id }, #there's an error if one tries to do this the natural way
+                         :keyword_ids => self.keyword_ids}
   end
 
   def update_archive_state
@@ -717,13 +660,13 @@ class Work &lt; ActiveRecord::Base
       append_apa_editor_text(citation_string)
 
       #Publication year
-      citation_string &lt;&lt; " (#{self.publication_date_year})" if self.publication_date_year
+      citation_string << " (#{self.publication_date_year})" if self.publication_date_year
 
       #Only add a period if the string doesn't currently end in a period.
-      citation_string &lt;&lt; ". " if !citation_string.match("\.\s*\Z")
+      citation_string << ". " if !citation_string.match("\.\s*\Z")
 
       #Title
-      citation_string &lt;&lt; "#{self.title_primary}. " if self.title_primary
+      citation_string << "#{self.title_primary}. " if self.title_primary
 
       #Now add in anything specific to the type of work, using a generic one defined in this model if
       #thee work type does not override.
@@ -737,34 +680,34 @@ class Work &lt; ActiveRecord::Base
 
   def append_apa_editor_text(citation_string)
     append_apa_contributors_text(citation_string, self.work_name_strings.editor.includes(:name_string))
-    citation_string &lt;&lt; " (Ed.)." if self.work_name_strings.editor.count == 1
-    citation_string &lt;&lt; " (Eds.)." if self.work_name_strings.editor.count &gt; 1
+    citation_string << " (Ed.)." if self.work_name_strings.editor.count == 1
+    citation_string << " (Eds.)." if self.work_name_strings.editor.count > 1
   end
 
   def append_apa_contributors_text(citation_string, collection)
     collection.first(5).each do |wns|
       name = wns.name_string.name
       name = ", #{name}" unless citation_string.blank?
-      citation_string &lt;&lt; name
+      citation_string << name
     end
   end
 
   #defines a default behavior - override in subclass to specialize
   def append_apa_work_type_specific_text!(citation_string)
-    citation_string &lt;&lt; "#{self.publication.authority.name}, " if self.publication
-    citation_string &lt;&lt; self.volume if self.volume
-    citation_string &lt;&lt; "(#{self.issue})" if self.issue
-    citation_string &lt;&lt; ", " if self.start_page or self.end_page
-    citation_string &lt;&lt; self.start_page if self.start_page
-    citation_string &lt;&lt; "-#{self.end_page}" if self.end_page
-    citation_string &lt;&lt; "."
+    citation_string << "#{self.publication.authority.name}, " if self.publication
+    citation_string << self.volume if self.volume
+    citation_string << "(#{self.issue})" if self.issue
+    citation_string << ", " if self.start_page or self.end_page
+    citation_string << self.start_page if self.start_page
+    citation_string << "-#{self.end_page}" if self.end_page
+    citation_string << "."
   end
 
   #Get all Author names on a Work, return as an array of hashes
   def authors
     self.work_name_strings.with_role(self.creator_role).includes(:name_string).collect do |wns|
       ns = wns.name_string
-      {:name =&gt; ns.name, :id =&gt; ns.id}
+      {:name => ns.name, :id => ns.id}
     end
   end
 
@@ -773,7 +716,7 @@ class Work &lt; ActiveRecord::Base
     return [] if self.contributor_role == self.creator_role
     self.work_name_strings.with_role(self.contributor_role).includes(:name_string).collect do |wns|
       ns = wns.name_string
-      {:name =&gt; ns.name, :id =&gt; ns.id}
+      {:name => ns.name, :id => ns.id}
     end
   end
 
@@ -800,18 +743,18 @@ class Work &lt; ActiveRecord::Base
   # In case there isn't a subklass open_url_kevs method
   def open_url_kevs
     open_url_kevs = Hash.new
-    open_url_kevs[:format] = "&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"
-    open_url_kevs[:genre] = "&amp;rft.genre=article"
-    open_url_kevs[:title] = "&amp;rft.atitle=#{CGI.escape(self.title_primary)}"
+    open_url_kevs[:format] = "&rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"
+    open_url_kevs[:genre] = "&rft.genre=article"
+    open_url_kevs[:title] = "&rft.atitle=#{CGI.escape(self.title_primary)}"
     unless self.publication.nil?
-      open_url_kevs[:source] = "&amp;rft.jtitle=#{CGI.escape(self.publication.authority.name)}"
-      open_url_kevs[:issn] = "&amp;rft.issn=#{self.publication.issns.first[:name]}" if !self.publication.issns.empty?
+      open_url_kevs[:source] = "&rft.jtitle=#{CGI.escape(self.publication.authority.name)}"
+      open_url_kevs[:issn] = "&rft.issn=#{self.publication.issns.first[:name]}" if !self.publication.issns.empty?
     end
-    open_url_kevs[:date] = "&amp;rft.date=#{self.publication_date_string}"
-    open_url_kevs[:volume] = "&amp;rft.volume=#{self.volume}"
-    open_url_kevs[:issue] = "&amp;rft.issue=#{self.issue}"
-    open_url_kevs[:start_page] = "&amp;rft.spage=#{self.start_page}"
-    open_url_kevs[:end_page] = "&amp;rft.epage=#{self.end_page}"
+    open_url_kevs[:date] = "&rft.date=#{self.publication_date_string}"
+    open_url_kevs[:volume] = "&rft.volume=#{self.volume}"
+    open_url_kevs[:issue] = "&rft.issue=#{self.issue}"
+    open_url_kevs[:start_page] = "&rft.spage=#{self.start_page}"
+    open_url_kevs[:end_page] = "&rft.epage=#{self.end_page}"
 
     return open_url_kevs
   end
@@ -820,7 +763,7 @@ class Work &lt; ActiveRecord::Base
   #ignore any key that has a nil value
   def open_url_context_string
     self.open_url_context_hash.collect do |k, v|
-      v ? URI.escape("&amp;#{k}=#{v}") : nil
+      v ? URI.escape("&#{k}=#{v}") : nil
     end.compact.join('')
   end
 
@@ -832,7 +775,7 @@ class Work &lt; ActiveRecord::Base
   end
 
   def open_url_base_context_hash
-    {'ctx_ver' =&gt; 'Z39.88-2004'}
+    {'ctx_ver' => 'Z39.88-2004'}
   end
 
   def update_type_and_save(new_type)
@@ -905,7 +848,7 @@ class Work &lt; ActiveRecord::Base
   # and saves them to the given Work object
   # Arguments:
   #  * Work object
-  #  * Array of hashes {:name =&gt; "Donohue, Tim", :role=&gt; "Author | Editor" }
+  #  * Array of hashes {:name => "Donohue, Tim", :role=> "Author | Editor" }
   def update_work_name_strings(name_strings_hash)
     return unless name_strings_hash
     #Remove *ALL* existing name_string(s).  We want to add them
@@ -916,12 +859,12 @@ class Work &lt; ActiveRecord::Base
     name_strings_hash.flatten.each do |cns|
       machine_name = make_machine_name(cns[:name])
       name = cns[:name].strip
-      name_string = NameString.find_or_create_by_machine_name(:machine_name =&gt; machine_name, :name =&gt; name)
+      name_string = NameString.find_or_create_by_machine_name(:machine_name => machine_name, :name => name)
       unless name_string.name == name
         name_string.name = name
         name_string.save!
       end
-      self.work_name_strings.create(:name_string_id =&gt; name_string.id, :role =&gt; cns[:role])
+      self.work_name_strings.create(:name_string_id => name_string.id, :role => cns[:role])
     end
   end
 
@@ -943,4 +886,3 @@ class Work &lt; ActiveRecord::Base
   end
 
 end
-</pre></body></html>

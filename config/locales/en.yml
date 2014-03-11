@@ -368,7 +368,6 @@ en:
     keywords: Keywords
     login: Library Staff Login
     logout: Logout
-	merge_selected: "Merge selected"
     more_groups: "More groups"
     more_people: "More people"
     more_publications: "More journals"
@@ -655,8 +654,6 @@ en:
       flash_destroy_multiple_privileges: "One or more articles could not be deleted, as you have insufficient privileges"
       flash_destroy_multiple_successful: "Articles were successfully deleted."
       flash_destroy_success: "Articles were successfully deleted."
-	  flash_merge_multiple_privileges: "One or more works could not be merged, as you have insufficient privileges"
-	  flash_merge_multiple_successful: "Works were successfully merge."  
       flash_update: "Article was successfully updated."
       location: Location
       location_given: "Location Given"
@@ -808,8 +805,6 @@ en:
       select_item: "Please select an item to delete."
       confirm_delete: "Are you sure you want to permanently delete this item?"
       confirm_delete_plural: "Are you sure you want to permanently delete these __count__ items?"
-	  confirm_merge: "Are you sure you want to permanently merge this item?"
-	  confirm_merge_plural: "Are you sure you want to permanently merge these __count__ items?" 
     specific:
       contributorships:
         index:
