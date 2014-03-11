@@ -1,5 +1,6 @@
 
-require 'solr'
+<!-- saved from url=(0094)https://raw.github.com/jstirnaman/BibApp/63a57d664a0d130fa78b939a9f025c2a3be70d17/lib/index.rb -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css"></style></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">require 'solr'
 class Index
 
   #### Solr ####
@@ -9,9 +10,9 @@ class Index
   # SOLRCONN lives in initializers
 
   # SEARCH
-  # q = solr.query("complex", :facets => {:zeros => false, :fields => [:author_facet]})
-  # q = solr.query("comp*", {:field_list => ["author_facet"]})
-  # q = solr.query("comp*", {:filter_queries => ["type_s:JournalArticle"]})
+  # q = solr.query("complex", :facets =&gt; {:zeros =&gt; false, :fields =&gt; [:author_facet]})
+  # q = solr.query("comp*", {:field_list =&gt; ["author_facet"]})
+  # q = solr.query("comp*", {:filter_queries =&gt; ["type_s:JournalArticle"]})
 
   # VIEW FACETS
   # @author_facets = @q.field_facets("name_string_facet")
@@ -27,76 +28,76 @@ class Index
   # Default Solr Mapping
   SOLR_MAPPING = {
       # Work
-      :pk_i => :id, #store Work ID as pk_i in Solr
-      :id => Proc.new { |record| record.solr_id }, #create a unique Solr ID for Work
-      :title => :title_primary,
-      :title_secondary => :title_secondary,
-      :title_tertiary => :title_tertiary,
-      :sort_title => :sort_name,
-      :issue => :issue,
-      :volume => :volume,
-      :start_page => :start_page,
-      :abstract => :abstract,
-      :status => :work_state_id,
-      :issn_isbn => Proc.new { |record| record.publication.nil? ? nil : record.publication.issn_isbn },
+      :pk_i =&gt; :id, #store Work ID as pk_i in Solr
+      :id =&gt; Proc.new { |record| record.solr_id }, #create a unique Solr ID for Work
+      :title =&gt; :title_primary,
+      :title_secondary =&gt; :title_secondary,
+      :title_tertiary =&gt; :title_tertiary,
+      :sort_title =&gt; :sort_name,
+      :issue =&gt; :issue,
+      :volume =&gt; :volume,
+      :start_page =&gt; :start_page,
+      :abstract =&gt; :abstract,
+      :status =&gt; :work_state_id,
+      :issn_isbn =&gt; Proc.new { |record| record.publication.nil? ? nil : record.publication.issn_isbn },
 
       # Work Type (index as "Journal article" rather than "JournalArticle")
-      :type => Proc.new { |record| record[:type].underscore.humanize },
+      :type =&gt; Proc.new { |record| record[:type].underscore.humanize },
 
       # NameStrings
-      :name_strings => Proc.new { |record| record.name_strings.collect { |ns| ns.name } },
-      :name_string_id => Proc.new { |record| record.name_strings.collect { |ns| ns.id } },
-      :name_strings_data => Proc.new { |record| record.name_strings.collect { |ns| ns.to_solr_data } },
+      :name_strings =&gt; Proc.new { |record| record.name_strings.collect { |ns| ns.name } },
+      :name_string_id =&gt; Proc.new { |record| record.name_strings.collect { |ns| ns.id } },
+      :name_strings_data =&gt; Proc.new { |record| record.name_strings.collect { |ns| ns.to_solr_data } },
 
       # WorkNameStrings
-      :authors_data => Proc.new { |record| record.authors.collect { |au| "#{au[:name]}||#{au[:id]}" } },
-      :editors_data => Proc.new { |record| record.editors.collect { |ed| "#{ed[:name]}||#{ed[:id]}" } },
+      :authors_data =&gt; Proc.new { |record| record.authors.collect { |au| "#{au[:name]}||#{au[:id]}" } },
+      :editors_data =&gt; Proc.new { |record| record.editors.collect { |ed| "#{ed[:name]}||#{ed[:id]}" } },
 
       # People
-      :people => Proc.new { |record| record.people.collect { |p| p.first_last } },
-      :person_id => Proc.new { |record| record.people.collect { |p| p.id } },
-      :people_data => Proc.new { |record| record.people.collect { |p| p.to_solr_data } },
-      :research_focus => Proc.new {|record| record.people.collect {|p| p.research_focus.dump}},
+      :people =&gt; Proc.new { |record| record.people.collect { |p| p.first_last } },
+      :person_id =&gt; Proc.new { |record| record.people.collect { |p| p.id } },
+      :people_data =&gt; Proc.new { |record| record.people.collect { |p| p.to_solr_data } },
+      :research_focus =&gt; Proc.new {|record| record.people.collect {|p| p.research_focus.dump}},
 
       #Person's active status in separate field for filtering
-      :person_active => Proc.new { |record| record.people.collect { |p| p.person_active } },
+      :person_active =&gt; Proc.new { |record| record.people.collect { |p| p.person_active } },
 
       # Groups
-      :groups => Proc.new { |record| record.people.collect { |p| p.groups.collect { |g| g.name } }.uniq.flatten },
-      :group_id => Proc.new { |record| record.people.collect { |p| p.groups.collect { |g| g.id } }.uniq.flatten },
-      :groups_data => Proc.new { |record| record.people.collect { |p| p.groups.collect { |g| g.to_solr_data } }.uniq.flatten },
+      :groups =&gt; Proc.new { |record| record.people.collect { |p| p.groups.collect { |g| g.name } }.uniq.flatten },
+      :group_id =&gt; Proc.new { |record| record.people.collect { |p| p.groups.collect { |g| g.id } }.uniq.flatten },
+      :groups_data =&gt; Proc.new { |record| record.people.collect { |p| p.groups.collect { |g| g.to_solr_data } }.uniq.flatten },
 
       # Publication
-      :publication => Proc.new { |record| record.publication.nil? ? nil : record.publication.name },
-      :publication_id => Proc.new { |record| record.publication.nil? ? nil : record.publication.id },
-      :publication_data => Proc.new { |record| record.publication.nil? ? nil : record.publication.to_solr_data },
+      :publication =&gt; Proc.new { |record| record.publication.nil? ? nil : record.publication.name },
+      :publication_id =&gt; Proc.new { |record| record.publication.nil? ? nil : record.publication.id },
+      :publication_data =&gt; Proc.new { |record| record.publication.nil? ? nil : record.publication.to_solr_data },
 
       # Publisher
-      :publisher => Proc.new { |record| record.publisher.nil? ? nil : record.publisher.name },
-      :publisher_id => Proc.new { |record| record.publisher.nil? ? nil : record.publisher.id },
-      :publisher_data => Proc.new { |record| record.publisher.nil? ? nil : record.publisher.to_solr_data },
+      :publisher =&gt; Proc.new { |record| record.publisher.nil? ? nil : record.publisher.name },
+      :publisher_id =&gt; Proc.new { |record| record.publisher.nil? ? nil : record.publisher.id },
+      :publisher_data =&gt; Proc.new { |record| record.publisher.nil? ? nil : record.publisher.to_solr_data },
 
       # Keywords
-      :keywords => Proc.new { |record| record.keywords.collect { |k| k.name } },
-      :keyword_id => Proc.new { |record| record.keywords.collect { |k| k.id } },
+      :keywords =&gt; Proc.new { |record| record.keywords.collect { |k| k.name } },
+      :keyword_id =&gt; Proc.new { |record| record.keywords.collect { |k| k.id } },
 
       # Tags
-      :tags => Proc.new { |record| record.tags.collect { |t| t.name } },
-      :tag_id => Proc.new { |record| record.tags.collect { |t| t.id } },
+      :tags =&gt; Proc.new { |record| record.tags.collect { |t| t.name } },
+      :tag_id =&gt; Proc.new { |record| record.tags.collect { |t| t.id } },
 
       # Duplication Keys
-      :title_dupe_key => Proc.new { |record| record.title_dupe_key },
-      :name_string_dupe_key => Proc.new { |record| record.name_string_dupe_key },
+      :title_dupe_key =&gt; Proc.new { |record| record.title_dupe_key },
+      :name_string_dupe_key =&gt; Proc.new { |record| record.name_string_dupe_key },
 
       # Timestamps
-      :created_at => :created_at,
-      :updated_at => :updated_at
+      :created_at =&gt; :created_at,
+      :updated_at =&gt; :updated_at
   }
 
   # Mapping specific to dates
   #   Since dates are occasionally null they are only passed to Solr
   #   if the publication_date_year is *not* null.
-  SOLR_DATE_MAPPING = SOLR_MAPPING.merge({:year => Proc.new { |record| record.publication_date_year }})
+  SOLR_DATE_MAPPING = SOLR_MAPPING.merge({:year =&gt; Proc.new { |record| record.publication_date_year }})
 
 
   # Index all Works which have been flagged for batch indexing
@@ -108,7 +109,7 @@ class Index
       batch_update_solr(records_slice, false)
     end
 
-    #Mark all these Works as indexed & commit changes to Solr
+    #Mark all these Works as indexed &amp; commit changes to Solr
     records.each do |r|
       r.mark_indexed
     end
@@ -118,7 +119,7 @@ class Index
   end
 
   def self.start(page, rows)
-    if page.to_i < 2
+    if page.to_i &lt; 2
       0
     else
       (page.to_i - 1) * (rows.to_i)
@@ -146,7 +147,7 @@ class Index
   end
 
   def self.build_spelling_suggestions
-    SOLRCONN.send(Solr::Request::Spellcheck.new(:command => "rebuild", :query => "physcs"))
+    SOLRCONN.send(Solr::Request::Spellcheck.new(:command =&gt; "rebuild", :query =&gt; "physcs"))
   end
 
   #Update a single record in Solr
@@ -211,10 +212,10 @@ class Index
     # Note: the various '*_facet' and '*_facet_data' fields
     # are auto-generated by our Solr schema settings (see schema.xml)
     query_params = {
-        :query => query_string,
-        :filter_queries => filter,
-        :facets => {
-            :fields => [
+        :query =&gt; query_string,
+        :filter_queries =&gt; filter,
+        :facets =&gt; {
+            :fields =&gt; [
                 :group_facet,
                 :group_facet_data,
                 :keyword_facet,
@@ -230,14 +231,14 @@ class Index
                 :publisher_facet,
                 :publisher_facet_data,
                 :type_facet,
-                {:year_facet => {:sort => :term}}
+                {:year_facet =&gt; {:sort =&gt; :term}}
             ],
-            :mincount => 1,
-            :limit => facet_count
+            :mincount =&gt; 1,
+            :limit =&gt; facet_count
         },
-        :start => self.start(page, rows),
-        :sort => [{sort.to_s => order.to_sym}],
-        :rows => rows
+        :start =&gt; self.start(page, rows),
+        :sort =&gt; [{sort.to_s =&gt; order.to_sym}],
+        :rows =&gt; rows
     }
 
     begin
@@ -245,7 +246,7 @@ class Index
       q = SOLRCONN.send(Solr::Request::Standard.new(query_params))
 
       # Rerun our search if the StandardRequestHandler came up empty...
-      if q.data["response"]["docs"].size < 1
+      if q.data["response"]["docs"].size &lt; 1
         # Try it instead with DismaxRequestHandler, which is more forgiving
         q = SOLRCONN.send(Solr::Request::Dismax.new(query_params))
       end
@@ -268,7 +269,7 @@ class Index
 
   #Retrieve Spelling Suggestions from Solr, based on query
   def self.get_spelling_suggestions(query)
-    spelling_suggestions = SOLRCONN.send(Solr::Request::Spellcheck.new(:query => query)).suggestions
+    spelling_suggestions = SOLRCONN.send(Solr::Request::Spellcheck.new(:query =&gt; query)).suggestions
     if spelling_suggestions == query
       spelling_suggestions = nil
     end
@@ -277,7 +278,7 @@ class Index
   end
 
   def self.fetch_by_solr_id(solr_id)
-    SOLRCONN.send(Solr::Request::Standard.new(:query => "id:#{solr_id}")).data["response"]["docs"]
+    SOLRCONN.send(Solr::Request::Standard.new(:query =&gt; "id:#{solr_id}")).data["response"]["docs"]
   end
 
   # Retrieve recommendations from Solr, based on current Work
@@ -285,10 +286,10 @@ class Index
 
     #Send a "more like this" query to Solr
     r = SOLRCONN.send(Solr::Request::Standard.new(
-                          :query => "id:#{work.solr_id}",
-                          :mlt => {
-                              :count => 5,
-                              :field_list => ["abstract", "title"]
+                          :query =&gt; "id:#{work.solr_id}",
+                          :mlt =&gt; {
+                              :count =&gt; 5,
+                              :field_list =&gt; ["abstract", "title"]
                           })
     )
 
@@ -298,7 +299,7 @@ class Index
     unless r.data["moreLikeThis"].empty? or r.data["moreLikeThis"]["#{work.solr_id}"].empty?
       r.data["moreLikeThis"]["#{work.solr_id}"]["docs"].each do |doc|
         work = Work.find(doc["pk_i"])
-        docs << [work, doc['score']]
+        docs &lt;&lt; [work, doc['score']]
       end
     end
 
@@ -322,8 +323,8 @@ class Index
 
     # Find all 'accepted' works with a matching Title Dupe Key or matching NameString Dupe Key
     query_params = {
-        :query => "((title_dupe_key:\"#{work['title_dupe_key']}\" OR name_string_dupe_key:\"#{work['name_string_dupe_key']}\")) AND #{Work.solr_accepted_filter}",
-        :rows => 3
+        :query =&gt; "((title_dupe_key:\"#{work['title_dupe_key']}\" OR name_string_dupe_key:\"#{work['name_string_dupe_key']}\")) AND #{Work.solr_accepted_filter}",
+        :rows =&gt; 3
     }
 
     #Send a "more like this" query to Solr
@@ -347,7 +348,7 @@ class Index
 
     #Get the Work corresponding to each doc returned by Solr
     docs.each do |doc|
-      dupes << Work.find(doc["pk_i"]) rescue nil
+      dupes &lt;&lt; Work.find(doc["pk_i"]) rescue nil
     end
     return dupes.compact
   end
@@ -360,11 +361,11 @@ class Index
 
     # Find all works with a matching Title Dupe Key or matching NameString Dupe Key
     query_params = {
-        :query => "(title_dupe_key:\"#{work.title_dupe_key}\" 
+        :query =&gt; "(title_dupe_key:\"#{work.title_dupe_key}\" 
           OR name_string_dupe_key:\"#{work.name_string_dupe_key}\") 
           
           ",
-        :rows => 3
+        :rows =&gt; 3
     }
 #AND (#{Work.solr_duplicate_filter})
     #Send a "more like this" query to Solr
@@ -380,7 +381,7 @@ class Index
   private
 
   #Process the response returned from a Solr query,
-  # and extract out the documents & facets
+  # and extract out the documents &amp; facets
   def self.process_response(query_response)
 
     #get the documents returned by Solr query
@@ -392,25 +393,26 @@ class Index
     #  Note: the various '*_facet' and '*_facet_data' fields
     #  are auto-generated by our Solr schema settings (see schema.xml)
     facets = {
-        :people => query_response.field_facets("person_facet"),
-        :people_data => query_response.field_facets("person_facet_data"),
-        :groups => query_response.field_facets("group_facet"),
-        :groups_data => query_response.field_facets("group_facet_data"),
-        :names => query_response.field_facets("name_string_facet"),
-        :names_data => query_response.field_facets("name_string_facet_data"),
-        :authors_data => query_response.field_facets("authors_data"),
-        :editors_data => query_response.field_facets("editors_data"),
-        :publications => query_response.field_facets("publication_facet"),
-        :publications_data => query_response.field_facets("publication_facet_data"),
-        :publishers => query_response.field_facets("publisher_facet"),
-        :publishers_data => query_response.field_facets("publisher_facet_data"),
-        :keywords => query_response.field_facets("keyword_facet"),
-        :tags => query_response.field_facets("tag_facet"),
-        :types => query_response.field_facets("type_facet"),
-        :years => query_response.field_facets("year_facet")
+        :people =&gt; query_response.field_facets("person_facet"),
+        :people_data =&gt; query_response.field_facets("person_facet_data"),
+        :groups =&gt; query_response.field_facets("group_facet"),
+        :groups_data =&gt; query_response.field_facets("group_facet_data"),
+        :names =&gt; query_response.field_facets("name_string_facet"),
+        :names_data =&gt; query_response.field_facets("name_string_facet_data"),
+        :authors_data =&gt; query_response.field_facets("authors_data"),
+        :editors_data =&gt; query_response.field_facets("editors_data"),
+        :publications =&gt; query_response.field_facets("publication_facet"),
+        :publications_data =&gt; query_response.field_facets("publication_facet_data"),
+        :publishers =&gt; query_response.field_facets("publisher_facet"),
+        :publishers_data =&gt; query_response.field_facets("publisher_facet_data"),
+        :keywords =&gt; query_response.field_facets("keyword_facet"),
+        :tags =&gt; query_response.field_facets("tag_facet"),
+        :types =&gt; query_response.field_facets("type_facet"),
+        :years =&gt; query_response.field_facets("year_facet")
     }
 
     return docs, facets
   end
 
 end
+</pre></body></html>
